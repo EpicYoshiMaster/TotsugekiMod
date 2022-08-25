@@ -2,79 +2,42 @@
 * Totsugeki!!!
 *
 */
-class Yoshi_GameMod_TotsugekiMod extends GameMod
-	dependsOn(Yoshi_InputPack);
-
-var InputPack InputPacks[2];
-
-var bool IsEnabled; //Replace with badge later this is temporary and bad
+class Yoshi_GameMod_TotsugekiMod extends GameMod;
 
 // How should it be triggered?
 // - Replace Dive *Prototype Attempt*
 // - Hat Ability
 
-// TODO List
-// Fix Invisible Hat Kid
-// Restrict ability to Move
-// Restrict being able to use ability infinitely
+// TODO
+// - Provide way to cancel Totsugeki
+// - Refresh Totsugeki on water
+// - Experiment with control options to make it more fun
+// - Look into ggst sfx
 
-event OnModLoaded() {
+event OnModLoaded() 
+{
 	if(`GameManager.GetCurrentMapFilename() ~= `GameManager.TitleScreenMapName) return;
 
-	HookActorSpawn(class'Hat_PlayerController', 'Hat_PlayerController');
+	HookActorSpawn(class'Hat_Player', 'Hat_Player');
 }
 
-event OnHookedActorSpawn(Object NewActor, Name Identifier) {
-	local InputPack NewPack;
-
-	if(Identifier == 'Hat_PlayerController') {
-		if(`GameManager.IsPlayerOne(PlayerController(NewActor)))
-		{
-			class'Yoshi_InputPack'.static.AttachController(ReceivedNativeInputKeyPlayerOne, PlayerController(NewActor), NewPack);
-			InputPacks[0] = NewPack;
-		}
-		else
-		{
-			class'Yoshi_InputPack'.static.AttachController(ReceivedNativeInputKeyPlayerTwo, PlayerController(NewActor), NewPack);
-			InputPacks[1] = NewPack;
-		}
+event OnHookedActorSpawn(Object NewActor, Name Identifier) 
+{
+	if(Identifier == 'Hat_Player') {
+		SetTimer(0.001, false, NameOf(GiveTotsugekiListener), self, NewActor);
 	} 
 }
 
-function bool ReceivedNativeInputKeyPlayerOne(int ControllerId, name Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
+function GiveTotsugekiListener(Hat_Player ply)
 {
-	if(InputPacks[0].PlyCon != None)
-	{
-		return ReceivedPlayerInput(Hat_Player(InputPacks[0].PlyCon.Pawn), ControllerId, Key, EventType, AmountDepressed, bGamepad);
-	}
-
-	return false;
+	ply.GiveStatusEffect(class'Yoshi_StatusEffect_TotsugekiListener');
 }
 
-function bool ReceivedNativeInputKeyPlayerTwo(int ControllerId, name Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
+event OnModUnloaded() 
 {
-	if(InputPacks[1].PlyCon != None)
-	{
-		return ReceivedPlayerInput(Hat_Player(InputPacks[1].PlyCon.Pawn), ControllerId, Key, EventType, AmountDepressed, bGamepad);
+	local Hat_Player ply;
+
+	foreach DynamicActors(class'Hat_Player', ply) {
+		ply.RemoveStatusEffect(class'Yoshi_StatusEffect_TotsugekiListener');
 	}
-
-	return false;
-}
-
-function bool ReceivedPlayerInput(Hat_Player ply, int ControllerId, name Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
-{
-	if(EventType != IE_Pressed) return false;
-
-	if(Key == 'Hat_Player_Crouch')
-	{
-		ply.GiveStatusEffect(class'Yoshi_StatusEffect_Totsugeki');
-		return true;
-	}
-
-	return false;
-}
-
-defaultproperties
-{
-	IsEnabled=true
 }

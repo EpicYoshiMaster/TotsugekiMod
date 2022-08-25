@@ -15,6 +15,8 @@ var float TotsugekiSpeed;
 
 var SkeletalMeshComponent DolphinMeshComp;
 
+var Vector InitialDirection;
+
 function SkeletalMeshComponent CreateDolphinMesh(Actor InActor, SkeletalMeshComponent InComponent)
 {
 	local SkeletalMeshComponent SkeletalMeshComponent;
@@ -26,7 +28,7 @@ function SkeletalMeshComponent CreateDolphinMesh(Actor InActor, SkeletalMeshComp
 	SkeletalMeshComponent.SetTranslation(DolphinTranslation);
 	SkeletalMeshComponent.SetLightEnvironment(InComponent.LightEnvironment);
 	InActor.AttachComponent(SkeletalMeshComponent);
-	SkeletalMeshComponent.AttachComponentToSocket(InComponent, 'Driver');
+	//SkeletalMeshComponent.AttachComponentToSocket(InComponent, 'Driver');
 
 	return SkeletalMeshComponent;
 }
@@ -41,10 +43,22 @@ function OnAdded(Actor a)
 	{
 		DolphinMeshComp = CreateDolphinMesh(a, ply.Mesh);
 		ply.PlayVoice(StartupSound);
-		ply.ResetMoveSpeed();
+
+		InitialDirection = Vector(ply.Rotation);
+		InitialDirection.Z = 0;
+		ply.Velocity = InitialDirection * GetSpeed();
 		ply.CustomGravityScaling = 0.0;
 		//Play Animation
 	}
+}
+
+function bool Update(float delta) 
+{
+	if(!Super.Update(delta)) return false;
+
+	Hat_Player(Owner).Velocity = InitialDirection * GetSpeed();
+
+	return true;
 }
 
 function simulated OnRemoved(Actor a)
@@ -55,13 +69,12 @@ function simulated OnRemoved(Actor a)
 	ply = Hat_Player(a);
 	if(ply != None) 
 	{
-		ply.ResetMoveSpeed();
 		ply.CustomGravityScaling = ply.default.CustomGravityScaling;
 		//Play Animation
 
 		if (DolphinMeshComp != None)
 		{
-			ply.AttachComponent(ply.Mesh);
+			//ply.AttachComponent(ply.Mesh);
 			DolphinMeshComp.DetachFromAny();
 		}
 	}
@@ -79,6 +92,10 @@ defaultproperties
 
 	DolphinMesh=SkeletalMesh'HatInTime_Weapons.models.umbrella_closed'
 	DolphinRotation=(Pitch=`QuarterRot)
-	DolphinScale=(X=3.0, Y=3.0, Z=3.0)
+	DolphinScale=(X=1.0, Y=1.0, Z=1.0)
 	StartupSound=SoundCue'HatinTime_Voice_HatKidApphia3.SoundCues.HatKid_DootDoot'
+
+	ClearFlags[Hat_Ability.AbilityClearFlag_Hookshot] = true;
+	ClearFlags[Hat_Ability.AbilityClearFlag_WallClimb] = true;
+	ClearFlags[Hat_Ability.AbilityClearFlag_SpringJump] = true;
 }
