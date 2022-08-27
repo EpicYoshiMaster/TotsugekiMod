@@ -9,10 +9,9 @@ class Yoshi_GameMod_TotsugekiMod extends GameMod;
 // - Hat Ability
 
 // TODO
-// - Provide way to cancel Totsugeki
-// - Refresh Totsugeki on water
 // - Experiment with control options to make it more fun
-// - Look into ggst sfx
+// - Set up the mod as a Badge
+// - De-jankify the Totsugeki usage (hat kid state checks like not diving etc etc.)
 
 event OnModLoaded() 
 {

@@ -44,6 +44,7 @@ function OnAdded(Actor a)
 		DolphinMeshComp = CreateDolphinMesh(a, ply.Mesh);
 		ply.PlayVoice(StartupSound);
 
+		ply.SetPhysics(PHYS_Falling);;
 		InitialDirection = Vector(ply.Rotation);
 		InitialDirection.Z = 0;
 		ply.Velocity = InitialDirection * GetSpeed();
@@ -91,9 +92,10 @@ defaultproperties
 	TotsugekiSpeed=1200
 
 	DolphinMesh=SkeletalMesh'HatInTime_Weapons.models.umbrella_closed'
-	DolphinRotation=(Pitch=`QuarterRot)
-	DolphinScale=(X=1.0, Y=1.0, Z=1.0)
-	StartupSound=SoundCue'HatinTime_Voice_HatKidApphia3.SoundCues.HatKid_DootDoot'
+	DolphinTranslation=(X=-10,Y=0,Z=-25)
+	DolphinRotation=(Pitch=-`QuarterRot)
+	DolphinScale=(X=1.5, Y=1.5, Z=2.0)
+	StartupSound=SoundCue'Yoshi_TotsugekiMod_Content.SoundCues.Totsugeki_May'
 
 	ClearFlags[Hat_Ability.AbilityClearFlag_Hookshot] = true;
 	ClearFlags[Hat_Ability.AbilityClearFlag_WallClimb] = true;
