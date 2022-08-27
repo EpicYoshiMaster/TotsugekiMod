@@ -44,7 +44,7 @@ function OnAdded(Actor a)
 		DolphinMeshComp = CreateDolphinMesh(a, ply.Mesh);
 		ply.PlayVoice(StartupSound);
 
-		ply.SetPhysics(PHYS_Falling);;
+		ply.SetPhysics(PHYS_Falling);
 		InitialDirection = Vector(ply.Rotation);
 		InitialDirection.Z = 0;
 		ply.Velocity = InitialDirection * GetSpeed();
@@ -57,6 +57,7 @@ function bool Update(float delta)
 {
 	if(!Super.Update(delta)) return false;
 
+	Hat_Player(Owner).SetPhysics(PHYS_Falling);
 	Hat_Player(Owner).Velocity = InitialDirection * GetSpeed();
 
 	return true;
@@ -84,6 +85,26 @@ function simulated OnRemoved(Actor a)
 function float GetSpeed()
 {
 	return TotsugekiSpeed;
+}
+
+function bool CannotJump()
+{
+    return true;
+}
+
+function bool CannotAttack()
+{
+    return true;
+}
+
+function bool OnDuck()
+{
+	return true;
+}
+
+function OnHitWall(vector HitNormal, actor Wall, PrimitiveComponent WallComp) 
+{
+	RemoveStatusEffect(Owner, self.class);
 }
 
 defaultproperties

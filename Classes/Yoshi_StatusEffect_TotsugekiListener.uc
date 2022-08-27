@@ -58,6 +58,16 @@ function bool CanUseTotsugeki()
 {
 	if(OnCooldown) return false;
 	if(IsInTotsugeki()) return false;
+	if(!Hat_Player(Owner).CanMoveAll(true)) return false;
+	if(Hat_Player(Owner).IsJumpDiving()) return false;
+	if(Hat_Player(Owner).IsHookShotSwinging()) return false;
+	if(Hat_Player(Owner).IsLedgeHanging()) return false;
+	if(Hat_Player(Owner).IsWallSliding()) return false;
+	if(Hat_Player(Owner).IsOnRope()) return false;
+	if(Hat_Player(Owner).HasStatusEffect(class'Hat_StatusEffect_Lava')) return false; 
+	if(Hat_Player(Owner).IsFirstPerson()) return false;
+	if(Hat_PlayerController(Hat_Player(Owner).Controller).bCinematicMode) return false;
+	if(Hat_PlayerController(Hat_Player(Owner).Controller).IsTalking()) return false;
 
 	return true;
 }
