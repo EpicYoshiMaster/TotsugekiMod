@@ -5,6 +5,7 @@
 class Yoshi_StatusEffect_Totsugeki extends Hat_StatusEffect;
 
 var SkeletalMesh DolphinMesh;
+var AnimSet DolphinAnimations;
 var Vector DolphinScale;
 var Rotator DolphinRotation;
 var Vector DolphinTranslation;
@@ -23,6 +24,8 @@ function SkeletalMeshComponent CreateDolphinMesh(Actor InActor, SkeletalMeshComp
 	
 	SkeletalMeshComponent = new class'SkeletalMeshComponent';
 	SkeletalMeshComponent.SetSkeletalMesh(DolphinMesh);
+	SkeletalMeshComponent.AnimSets.Length = 0;
+	SkeletalMeshComponent.AnimSets.AddItem(DolphinAnimations);
 	SkeletalMeshComponent.SetScale3D(DolphinScale);
 	SkeletalMeshComponent.SetRotation(DolphinRotation);
 	SkeletalMeshComponent.SetTranslation(DolphinTranslation);
@@ -112,10 +115,11 @@ defaultproperties
 	Duration=2.0
 	TotsugekiSpeed=1200
 
-	DolphinMesh=SkeletalMesh'HatInTime_Weapons.models.umbrella_closed'
-	DolphinTranslation=(X=-10,Y=0,Z=-25)
-	DolphinRotation=(Pitch=-`QuarterRot)
-	DolphinScale=(X=1.5, Y=1.5, Z=2.0)
+	DolphinMesh=SkeletalMesh'Ctm_TOTSUGEKI_Content.models.Totsugeki'
+	DolphinAnimations=AnimSet'Ctm_TOTSUGEKI_Content.AnimSets.Totsugeki_Anims'
+	DolphinTranslation=(X=10,Y=0,Z=-30)
+	DolphinRotation=(Pitch=0,Roll=0,Yaw=`QuarterRot)
+	DolphinScale=(X=1, Y=1, Z=1)
 	StartupSound=SoundCue'Yoshi_TotsugekiMod_Content.SoundCues.Totsugeki_May'
 
 	ClearFlags[Hat_Ability.AbilityClearFlag_Hookshot] = true;
