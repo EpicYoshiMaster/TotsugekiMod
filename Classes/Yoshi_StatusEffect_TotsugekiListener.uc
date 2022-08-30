@@ -5,7 +5,7 @@
 class Yoshi_StatusEffect_TotsugekiListener extends Hat_StatusEffect
 	dependsOn(Yoshi_InputPack);
 
-var const class<Hat_StatusEffect> TotsugekiStatusEffect;
+var Yoshi_Dolphin Dolphin;
 
 var bool OnCooldown;
 var bool WasHookshotSwinging;
@@ -74,14 +74,15 @@ function bool CanUseTotsugeki()
 
 function bool IsInTotsugeki()
 {
-	return Hat_Player(Owner).HasStatusEffect(TotsugekiStatusEffect);
+	return (Dolphin != None && Dolphin.UsingTotsugeki());
 }
 
 function bool Totsugeki()
 {
 	if(!CanUseTotsugeki()) return false;
 
-	Hat_Player(Owner).GiveStatusEffect(TotsugekiStatusEffect);
+	Dolphin = Owner.Spawn(class'Yoshi_Dolphin',,,Owner.Location,Owner.Rotation,,true);
+	Dolphin.MountDolphin(Hat_Player(Owner));
 	SetCooldown(true);
 
 	return true;
@@ -89,7 +90,12 @@ function bool Totsugeki()
 
 function UnTotsugeki()
 {
-	Hat_Player(Owner).RemoveStatusEffect(TotsugekiStatusEffect);
+	if(Dolphin != None)
+	{
+		Dolphin.UnmountDolphin();
+	}
+
+	Dolphin = None;
 }
 
 function SetCooldown(bool NewCooldown) 
@@ -127,8 +133,22 @@ function OnEnterWater(PhysicsVolume NewVolume)
 	SetCooldown(false);
 }
 
+function bool CannotJump()
+{
+    return IsInTotsugeki();
+}
+
+function bool CannotAttack()
+{
+    return IsInTotsugeki();
+}
+
+function bool OnDuck()
+{
+	return IsInTotsugeki();
+}
+
 defaultproperties
 {
 	Infinite=true
-	TotsugekiStatusEffect=class'Yoshi_StatusEffect_Totsugeki'
 }

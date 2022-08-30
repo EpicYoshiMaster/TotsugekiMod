@@ -2,7 +2,12 @@
 * Totsugeki!!!11!111!1111!!!11!11!1one!111!11!!
 *
 */
+
 class Yoshi_StatusEffect_Totsugeki extends Hat_StatusEffect;
+
+/*
+
+var Yoshi_Dolphin Totsugeki;
 
 var SkeletalMesh DolphinMesh;
 var AnimSet DolphinAnimations;
@@ -44,6 +49,10 @@ function OnAdded(Actor a)
 	ply = Hat_Player(a);
 	if(ply != None) 
 	{
+		Totsugeki = ply.Spawn(class'Yoshi_Dolphin', ply,,ply.Location,ply.Rotation,,true);
+		Totsugeki.MountDolphin(ply);
+
+		
 		DolphinMeshComp = CreateDolphinMesh(a, ply.Mesh);
 		ply.PlayVoice(StartupSound);
 
@@ -54,16 +63,6 @@ function OnAdded(Actor a)
 		ply.CustomGravityScaling = 0.0;
 		//Play Animation
 	}
-}
-
-function bool Update(float delta) 
-{
-	if(!Super.Update(delta)) return false;
-
-	Hat_Player(Owner).SetPhysics(PHYS_Falling);
-	Hat_Player(Owner).Velocity = InitialDirection * GetSpeed();
-
-	return true;
 }
 
 function simulated OnRemoved(Actor a)
@@ -125,4 +124,4 @@ defaultproperties
 	ClearFlags[Hat_Ability.AbilityClearFlag_Hookshot] = true;
 	ClearFlags[Hat_Ability.AbilityClearFlag_WallClimb] = true;
 	ClearFlags[Hat_Ability.AbilityClearFlag_SpringJump] = true;
-}
+} */
