@@ -12,9 +12,13 @@ var bool WasHookshotSwinging;
 
 var InputPack InputPack;
 
+var array< class<Yoshi_DolphinInteractType> > AllInteractClasses; //Passed into Yoshi_Dolphin on spawn
+
 function OnAdded(Actor a) 
 {
     Super.OnAdded(a);
+
+	AllInteractClasses = GetAllInteractClasses();
 
 	class'Yoshi_InputPack'.static.AttachController(ReceivedPlayerInput, PlayerController(Pawn(a).Controller), InputPack);
 }
@@ -82,6 +86,7 @@ function bool Totsugeki()
 	if(!CanUseTotsugeki()) return false;
 
 	Dolphin = Owner.Spawn(class'Yoshi_Dolphin',,,Owner.Location,Owner.Rotation,,true);
+	Dolphin.InteractTypes = AllInteractClasses;
 	Dolphin.MountDolphin(Hat_Player(Owner));
 	SetCooldown(true);
 
@@ -110,9 +115,6 @@ function CheckHookshotRefresh()
 	IsHookShotSwinging = Hat_Player(Owner).IsHookShotSwinging();
 	if(WasHookshotSwinging && !IsHookShotSwinging) {
 		SetCooldown(false);
-	}
-	else if(!WasHookshotSwinging && IsHookShotSwinging) {
-		Hat_Player(Owner).ClearStatusEffects(BitWise(class'Hat_Ability'.const.AbilityClearFlag_Hookshot));
 	}
 
 	WasHookshotSwinging = IsHookShotSwinging;
@@ -146,6 +148,23 @@ function bool CannotAttack()
 function bool OnDuck()
 {
 	return IsInTotsugeki();
+}
+
+//Call it once then never again...
+function array< class<Yoshi_DolphinInteractType> > GetAllInteractClasses() {
+	local array< class<Object> > AllClasses;
+    local int i;
+
+	if(AllInteractClasses.length > 0) return AllInteractClasses;
+
+    AllClasses = class'Hat_ClassHelper'.static.GetAllScriptClasses("Yoshi_DolphinInteractType");
+    for(i = 0; i < AllClasses.length; i++) {
+        if(class<Yoshi_DolphinInteractType>(AllClasses[i]) != None) {
+            AllInteractClasses.AddItem(class<Yoshi_DolphinInteractType>(AllClasses[i]));
+        }
+    }
+
+    return AllInteractClasses;
 }
 
 defaultproperties

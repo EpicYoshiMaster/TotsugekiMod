@@ -2,7 +2,8 @@
 * Totsugeki!!!!!
 * This is Mr. Dolphin, he arises from the ground seas, flies for a distance, then either returns into the ground or gracefully spirals upon bonking into something
 */
-class Yoshi_Dolphin extends Actor;
+class Yoshi_Dolphin extends Actor
+	dependsOn(Yoshi_DolphinInteractType);
 
 var(Effects) SoundCue TotsugekiVoiceline;
 var(Effects) SoundCue ExitWaterSound;
@@ -14,6 +15,7 @@ var(Gameplay) int Damage;
 var(Gameplay) float Duration;
 var(Gameplay) float TotsugekiSpeed;
 var(Gameplay) Vector BonkPushback; //apply X velocity in reverse of start direction, and Z velocity upwards
+var(Gameplay) class<Hat_DamageType> DamageType;
 
 var(Meshes) SkeletalMeshComponent DolphinMesh;
 var(Meshes) array<CylinderComponent> CollisionCylinders;
@@ -36,6 +38,8 @@ var float CurrentDuration;
 var bool InTotsugekiMode; //This is when we're flying horizontally, we can attack enemies in this state
 
 var Hat_Player AttachedPlayer;
+
+var array< class<Yoshi_DolphinInteractType> > InteractTypes; //These will be passed in by the Listener status effect, don't want to grab them over and over
 
 simulated event PostBeginPlay()
 {
@@ -72,7 +76,7 @@ function MountDolphin(Hat_Player ply)
 	InitialDirection.Z = 0;
 	SetPhysics(PHYS_Falling);
 	DolphinMesh.SetLightEnvironment(ply.Mesh.LightEnvironment);
-	class'Hat_Pawn'.static.ReTouchAllActors_Static(self, true); //In-case we're starting in a wal
+	class'Hat_Pawn'.static.ReTouchAllActors_Static(self, true); //In-case we're starting in a wall
 
 	// Play cosmetic effects
 	ply.PlayVoice(TotsugekiVoiceline); //Totsugeki!!!
@@ -202,18 +206,34 @@ simulated event HitWall( Vector HitNormal, Actor Wall, PrimitiveComponent WallCo
 
 event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vector HitNormal)
 {
+	local int i;
+	local EDolphinInteractType Result;
+
 	if(Hat_Player(Other) != None && Hat_Player(Other) == AttachedPlayer) return;
 
 	Print("Touch" @ `ShowVar(Other) @ `ShowVar(OtherComp) @ `ShowVar(HitLocation) @ `ShowVar(HitNormal));
-	if(InTotsugekiMode && !Other.bHidden && Other.bBlockActors)
+	if(InTotsugekiMode && !Other.bHidden)
 	{
-		//Are they someone we should damage
-		if(Hat_Enemy(Other) != None && Other.bCanBeDamaged)
+		for(i = 0; i < InteractTypes.length; i++)
 		{
-			Hat_Enemy(Other).TakeDamage(Damage, AttachedPlayer.Controller, Location, Velocity, class'Hat_DamageType_HomingAttack');
-		}
+			if(InteractTypes[i].static.IsActorOfInteractType(Other))
+			{
+				Result = InteractTypes[i].static.OnTouch(self, AttachedPlayer, Other, OtherComp, HitLocation, HitNormal);
 
-		UnmountDolphin(true);
+				if(Result == DI_None) continue;
+
+				if(Result == DI_Unmount)
+				{
+					UnmountDolphin(false);
+				}
+				else if(Result == DI_Bonk)
+				{
+					UnmountDolphin(true);
+				}
+
+				break;
+			}
+		}
 	}
 
 	Super.Touch(Other, OtherComp, HitLocation, HitNormal);
@@ -222,7 +242,10 @@ event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vecto
 event Landed(Vector HitNormal, Actor FloorActor, Vector ImpactVelocity )
 {
 	Print("Landed");
-	//If we're in totsugeki mode that's kinda weird, if we're not this is when to use the splash animation upon leaving
+	if(InTotsugekiMode)
+	{
+		UnmountDolphin(false);
+	}
 
 	Super.Landed(HitNormal, FloorActor, ImpactVelocity);
 }
@@ -276,6 +299,7 @@ defaultproperties
 	Duration=2.0
 	TotsugekiSpeed=1200.0
 	BonkPushback=(X=600,Y=0,Z=300)
+	DamageType=class'Hat_DamageType_HomingAttack'
 
 	Begin Object Class=SkeletalMeshComponent Name=Model0
 		SkeletalMesh=SkeletalMesh'Ctm_TOTSUGEKI_Content.models.Totsugeki'
@@ -343,15 +367,6 @@ defaultproperties
 	End Object
 	Components.Add(BubbleTrailParticle);
 	BubbleTrail=BubbleTrailParticle;
-
-	/*
-	Begin Object Class=ParticleSystemComponent Name=SplashParticle0
-        Template=ParticleSystem'HatInTime_PlayerAssets.watersplash.watersplash'
-		MaxDrawDistance = 6000;
-		bAutoActivate=false
-    End Object 
-    Components.Add(SplashParticle0)
-    SplashParticle=SplashParticle0*/
 
 	bCollideActors=true
 	bBlockActors=false

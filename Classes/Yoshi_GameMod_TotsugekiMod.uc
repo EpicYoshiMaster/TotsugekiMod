@@ -13,11 +13,30 @@ class Yoshi_GameMod_TotsugekiMod extends GameMod;
 //
 
 // Priorities
-// - Add a splash and particle trail
-// - Integrate Attacking
+
+//
+// Touch Types TODO
+//
+// Cancel Totsugeki on Endorsements (should also go for collects with auto skip off)
+// Impact Interact Trees
+// BREAK Breakable Boxes
+// HIT Levers
+// Dynamic Actors in general (NPCS)
+// COLLECT Time Pieces
+// Trigger Volumes
+// Hat_DivaGreetSpot
+// Hat_GiantHeatDial
+// Hat_Hazard_MafiaBall
+// Hat_GiantFaucetHandle
+// Hat_CarryObject_Stackable
+// Hat_MetroVacuum
+// Should not be able to hit enemy line of sight volumes LOL
+
+// - Parade owls are scary broken (but not like super broken just enough that it's concerning)
+// - Look into how totsugeki is busting through walls
+// - Implement a list of exception actors to also end on Touch
+// - Consider ending Totsugeki on landing
 // - Disable Totsugeki on Rope / Spring find more buggy opportunities
-// - Think of a better solution than cancelling totsugeki on walls (I want it to just be on wall climb)
-// - How should ground Totsugeki work? (Raise you above the ground slightly?)
 // - Experiment with control options to make it more fun
 
 // For Later
