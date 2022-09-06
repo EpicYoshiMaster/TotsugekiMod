@@ -208,16 +208,19 @@ event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vecto
 {
 	local int i;
 	local EDolphinInteractType Result;
+	local bool FoundInteractType;
 
 	if(Hat_Player(Other) != None && Hat_Player(Other) == AttachedPlayer) return;
+	if(Yoshi_Dolphin(Other) != None && Yoshi_Dolphin(Other) == self) return;
 
-	Print("Touch" @ `ShowVar(Other) @ `ShowVar(OtherComp) @ `ShowVar(HitLocation) @ `ShowVar(HitNormal));
-	if(InTotsugekiMode && !Other.bHidden)
+	if(InTotsugekiMode)
 	{
 		for(i = 0; i < InteractTypes.length; i++)
 		{
 			if(InteractTypes[i].static.IsActorOfInteractType(Other))
 			{
+				FoundInteractType = true;
+
 				Result = InteractTypes[i].static.OnTouch(self, AttachedPlayer, Other, OtherComp, HitLocation, HitNormal);
 
 				if(Result == DI_None) continue;
@@ -234,9 +237,57 @@ event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vecto
 				break;
 			}
 		}
+
+		if(!FoundInteractType)
+		{
+			Print("NO TOUCH HANDLER FOUND FOR" @ `ShowVar(Other));
+		}
 	}
 
 	Super.Touch(Other, OtherComp, HitLocation, HitNormal);
+}
+
+event UnTouch( Actor Other )
+{
+	local int i;
+	local EDolphinInteractType Result;
+	local bool FoundInteractType;
+
+	if(Hat_Player(Other) != None && Hat_Player(Other) == AttachedPlayer) return;
+	if(Yoshi_Dolphin(Other) != None && Yoshi_Dolphin(Other) == self) return;
+
+	if(InTotsugekiMode)
+	{
+		for(i = 0; i < InteractTypes.length; i++)
+		{
+			if(InteractTypes[i].static.IsActorOfInteractType(Other))
+			{
+				FoundInteractType = true;
+
+				Result = InteractTypes[i].static.OnUnTouch(self, AttachedPlayer, Other);
+
+				if(Result == DI_None) continue;
+
+				if(Result == DI_Unmount)
+				{
+					UnmountDolphin(false);
+				}
+				else if(Result == DI_Bonk)
+				{
+					UnmountDolphin(true);
+				}
+
+				break;
+			}
+		}
+
+		if(!FoundInteractType)
+		{
+			//Print("NO UNTOUCH HANDLER FOUND FOR" @ `ShowVar(Other));
+		}
+	}
+
+	Super.UnTouch(Other);
 }
 
 event Landed(Vector HitNormal, Actor FloorActor, Vector ImpactVelocity )

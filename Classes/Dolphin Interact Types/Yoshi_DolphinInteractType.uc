@@ -32,3 +32,8 @@ static function EDolphinInteractType OnTouch(Yoshi_Dolphin Dolphin, Hat_Player A
 {
 	return DI_None;
 }
+
+static function EDolphinInteractType OnUnTouch(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Actor Other)
+{
+	return DI_None;
+}
