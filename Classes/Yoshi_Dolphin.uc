@@ -38,11 +38,15 @@ var float CurrentDuration;
 var bool InTotsugekiMode; //This is when we're flying horizontally, we can attack enemies in this state
 
 var Hat_Player AttachedPlayer;
+var AnimSet PlayerDolphinAnims;
+
+var transient MaterialInstanceTimeVarying MatInstance;
 
 var array< class<Yoshi_DolphinInteractType> > InteractTypes; //These will be passed in by the Listener status effect, don't want to grab them over and over
 
 simulated event PostBeginPlay()
 {
+	MatInstance = DolphinMesh.CreateAndSetMaterialInstanceTimeVarying(0);
 	DolphinMesh.SetHidden(true);
 	Super.PostBeginPlay();
 }
@@ -68,6 +72,7 @@ function MountDolphin(Hat_Player ply)
 	ply.CustomGravityScaling = 0.0;
 	ply.SetBase(self);
 	ply.SetHardAttach(true);
+	GivePlayerAnimSet(true);
 
 	// Set dolphin initial state
 	InTotsugekiMode = true;
@@ -90,6 +95,7 @@ function MountDolphin(Hat_Player ply)
 
 	BubbleTrail.SetActive(true);
 	SetDolphinAnim('GetOn');
+	AttachedPlayer.PlayCustomAnimation('HK_GetOnTotsu');
 }
 
 /**
@@ -123,8 +129,14 @@ function UnmountDolphin(bool IsBonk = false)
 	Velocity = vect(0,0,0);
 	SetTimer(IsBonk ? EndAnimationBonkTime : EndAnimationTime, false, NameOf(HideDolphin));
 
-	// Play cosmetic effects (these actually need to be delayed but we don't know how much yet)
+	// Play cosmetic effects
 	SetDolphinAnim((IsBonk) ? 'Hurt' : 'GetOff');
+	AttachedPlayer.PlayCustomAnimation('');
+	if(IsBonk && MatInstance != None)
+	{
+		MatInstance.SetScalarParameterValue('IsHurt', 1.0); //Set expression to Hurt (ouch! X - X)
+	}
+
 	SetTimer(CosmeticEffectsDelay, false, NameOf(PlayUnmountCosmeticEffects));
 }
 
@@ -133,7 +145,7 @@ function PlayUnmountCosmeticEffects()
 	local ParticleSystemComponent SplashComp;
 	local Vector PositionOffset;
 
-	// Play cosmetic effects (these actually need to be delayed but we don't know how much yet)
+	// Play cosmetic effects
 	PlaySound(EnterWaterSound);
 
 	PositionOffset = InitialDirection * ((IsBonking) ? SplashUnmountBonkOffset.X : SplashUnmountOffset.X);
@@ -157,6 +169,7 @@ function HideDolphin()
 function DestroyDolphin()
 {
 	AttachedPlayer = None;
+	GivePlayerAnimSet(false);
 
 	Destroy();
 }
@@ -317,6 +330,11 @@ function SetDolphinAnim(Name AnimName, optional bool instant)
 	SetDolphinAnimationIndex(indx, instant);
 }
 
+function SetPlayerAnim(Name AnimName)
+{
+	AttachedPlayer.PlayCustomAnimation(AnimName, true);
+}
+
 function SetDolphinAnimationIndex(int indx, optional bool instant)
 {
     local Hat_AnimBlendBase n;
@@ -325,6 +343,27 @@ function SetDolphinAnimationIndex(int indx, optional bool instant)
         n.SetActiveChild(indx, instant ? 0.0f : n.GetBlendTime(indx));
     else
         `broadcast("Node" @ string(n) @ "not found");
+}
+
+function GivePlayerAnimSet(bool give)
+{
+	if(AttachedPlayer == None) return;
+
+	if (give)
+	{
+		if (AttachedPlayer.Mesh.AnimSets.Find(PlayerDolphinAnims) == INDEX_NONE)
+		{
+			AttachedPlayer.Mesh.AnimSets.AddItem(PlayerDolphinAnims);
+		}
+	}
+	else
+	{
+		if (AttachedPlayer.Mesh.AnimSets.Find(PlayerDolphinAnims) != INDEX_NONE)
+		{
+			AttachedPlayer.Mesh.AnimSets.RemoveItem(PlayerDolphinAnims);
+		}
+	}
+	AttachedPlayer.Mesh.UpdateAnimations();
 }
 
 static final function Print(coerce string msg)
@@ -438,4 +477,6 @@ defaultproperties
 	SplashParticle=ParticleSystem'HatInTime_PlayerAssets.watersplash.watersplash'
 	ExitWaterSound=SoundCue'HatinTime_SFX_Player.WaterJumpOut_cue'
 	EnterWaterSound=SoundCue'HatInTime_PlayerAssets.SoundCues.splash'
+
+	PlayerDolphinAnims=AnimSet'Ctm_TOTSUGEKI_Content.AnimSets.HK_Totsugeki_Ride'
 }
