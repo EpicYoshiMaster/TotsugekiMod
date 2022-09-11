@@ -4,10 +4,6 @@
 */
 class Yoshi_GameMod_TotsugekiMod extends GameMod;
 
-// How should it be triggered?
-// - Replace Dive *Prototype Attempt*
-// - Hat Ability
-
 //
 // TODO
 //
@@ -47,10 +43,8 @@ class Yoshi_GameMod_TotsugekiMod extends GameMod;
 // - Look into how totsugeki is busting through walls
 // - Limit Totsugeki to 2D in Mafia Boss fight?
 // - Delay Dolphin hidden startup time just a tiny bit more
-// - Experiment with control options to make it more fun
 
 // For Later
-// - Consider the vertical dolphin option?
 // - Set up the mod as a Badge or Hat Ability
 
 event OnModLoaded() 
@@ -63,13 +57,20 @@ event OnModLoaded()
 event OnHookedActorSpawn(Object NewActor, Name Identifier) 
 {
 	if(Identifier == 'Hat_Player') {
-		SetTimer(0.001, false, NameOf(GiveTotsugekiListener), self, NewActor);
+		SetTimer(0.3, false, NameOf(GiveItem), self, NewActor);
 	} 
 }
 
-function GiveTotsugekiListener(Hat_Player ply)
+//Defaulting to false as give because the SetTimer call is dumb and overrides defaults, sorry for confusing logic!!!!!!!!
+function GiveItem(Hat_Player ply, bool bTakeAway)
 {
-	ply.GiveStatusEffect(class'Yoshi_StatusEffect_TotsugekiListener');
+	class'Yoshi_Dolphin'.static.Print("GiveItem" @ `ShowVar(ply) @ `ShowVar(ply.Controller) @ `ShowVar(bTakeAway));
+	if(ply.Controller == None) return;
+
+	if (!bTakeAway)
+		Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(class'Yoshi_Hat_Ability_Totsugeki'), false);
+	else
+		Hat_PlayerController(ply.Controller).GetLoadout().RemoveBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(class'Yoshi_Hat_Ability_Totsugeki'));
 }
 
 event OnModUnloaded() 
@@ -77,6 +78,6 @@ event OnModUnloaded()
 	local Hat_Player ply;
 
 	foreach DynamicActors(class'Hat_Player', ply) {
-		ply.RemoveStatusEffect(class'Yoshi_StatusEffect_TotsugekiListener');
+		GiveItem(ply, true);
 	}
 }

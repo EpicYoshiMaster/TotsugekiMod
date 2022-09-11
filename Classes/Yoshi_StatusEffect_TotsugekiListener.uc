@@ -42,7 +42,7 @@ function bool ReceivedPlayerInput(int ControllerId, name Key, EInputEvent EventT
 	local bool DidTotsugeki;
 	if(EventType != IE_Pressed) return false;
 
-	if(Key == 'Hat_Player_Crouch')
+	if(Key == 'Hat_Player_Ability')
 	{
 		DidTotsugeki = Totsugeki();
 

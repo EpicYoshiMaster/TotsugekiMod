@@ -118,9 +118,10 @@ function UnmountDolphin(bool IsBonk = false)
 		ply.CustomGravityScaling = ply.default.CustomGravityScaling;
 		ply.SetBase(None);
 		ply.SetHardAttach(ply.default.bHardAttach);
+		ply.PlayCustomAnimation(''); //Set them back to normal
 
 		// For a bonk, give the player some pushback, otherwise keep their speed
-		AttachedPlayer.Velocity = (IsBonk) ? (-InitialDirection * BonkPushback.X + vect(0,0,1) * BonkPushback.Z) : InitialDirection * TotsugekiSpeed;
+		ply.Velocity = (IsBonk) ? (-InitialDirection * BonkPushback.X + vect(0,0,1) * BonkPushback.Z) : InitialDirection * TotsugekiSpeed;
 	}
 
 	// Set dolphin end state
@@ -131,7 +132,6 @@ function UnmountDolphin(bool IsBonk = false)
 
 	// Play cosmetic effects
 	SetDolphinAnim((IsBonk) ? 'Hurt' : 'GetOff');
-	AttachedPlayer.PlayCustomAnimation('');
 	if(IsBonk && MatInstance != None)
 	{
 		MatInstance.SetScalarParameterValue('IsHurt', 1.0); //Set expression to Hurt (ouch! X - X)
