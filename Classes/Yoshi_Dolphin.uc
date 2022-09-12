@@ -5,10 +5,16 @@
 class Yoshi_Dolphin extends Actor
 	dependsOn(Yoshi_DolphinInteractType);
 
+const FLOOR_OFFSET_Z = -60;
+
 var(Effects) SoundCue TotsugekiVoiceline;
 var(Effects) SoundCue ExitWaterSound;
 var(Effects) SoundCue EnterWaterSound;
 var(Effects) ParticleSystem SplashParticle;
+var(Effects) float SplashParticleScale;
+var(Effects) float GetOnOffset;
+var(Effects) float GetOffOffset;
+var(Effects) float HurtOffset;
 var(Effects) ParticleSystemComponent BubbleTrail;
 
 var(Gameplay) int Damage;
@@ -21,11 +27,6 @@ var(Meshes) SkeletalMeshComponent DolphinMesh;
 var(Meshes) array<CylinderComponent> CollisionCylinders;
 
 // Temporary Testing Variables
-var(Temporary) Vector SplashMountOffset;
-var(Temporary) Vector SplashUnmountOffset;
-var(Temporary) Vector SplashUnmountBonkOffset;
-var(Temporary) Vector BubbleOffset;
-var(Temporary) float SplashScale;
 var(Temporary) float CosmeticEffectsDelay;
 var(Temporary) float UnhideDelayTime;
 var(Temporary) float StartAnimTime;
@@ -34,7 +35,7 @@ var(Temporary) float EndAnimationBonkTime;
 var(Temporary) float DestroyTime;
 
 var Vector InitialDirection;
-var bool IsBonking;
+var Name CurrentAnim;
 var float CurrentDuration;
 var bool InTotsugekiMode; //This is when we're flying horizontally, we can attack enemies in this state
 
@@ -58,15 +59,7 @@ simulated event PostBeginPlay()
 */
 function MountDolphin(Hat_Player ply)
 {
-	local ParticleSystemComponent SplashComp;
-	local Vector PositionOffset;
-
-	Print("MountDolpin");
-
-	if(AttachedPlayer != None)
-	{
-		UnmountDolphin(); //This should never occur but just in case!
-	}
+	Print("MountDolphin" @ `ShowVar(ply));
 
 	// Handle player attachment
 	AttachedPlayer = ply;
@@ -88,18 +81,15 @@ function MountDolphin(Hat_Player ply)
 	class'Hat_Pawn'.static.ReTouchAllActors_Static(self, true); //In-case we're starting in a wall
 
 	// Play cosmetic effects
+	SetDolphinAnim('GetOn');
+	AttachedPlayer.PlayCustomAnimation('HK_GetOnTotsu');
 	ply.PlayVoice(TotsugekiVoiceline); //Totsugeki!!!
 	PlaySound(ExitWaterSound);
-	PositionOffset = InitialDirection * SplashMountOffset.X;
-	PositionOffset.Z = SplashMountOffset.Z;
-	SplashComp = WorldInfo.MyEmitterPool.SpawnEmitter(SplashParticle, Location + PositionOffset, Rotator(InitialDirection));
-	SplashComp.SetScale(SplashScale);
+	SpawnSplashParticle(Location);
 	SetTimer(UnhideDelayTime, false, NameOf(UnHideDolphin));
 	SetTimer(StartAnimTime, false, NameOf(RideDolphin));
 
 	BubbleTrail.SetActive(true);
-	SetDolphinAnim('GetOn');
-	AttachedPlayer.PlayCustomAnimation('HK_GetOnTotsu');
 }
 
 /**
@@ -111,10 +101,15 @@ function UnmountDolphin(bool IsBonk = false)
 	local Hat_Player ply;
 	Print("UnmountDolphin" @ IsBonk);
 
+	// Play cosmetic effects
+	SetDolphinAnim((IsBonk) ? 'Hurt' : 'GetOff');
+	if(IsBonk && MatInstance != None)
+	{
+		MatInstance.SetScalarParameterValue('IsHurt', 1.0); //Set expression to Hurt (ouch! X - X)
+	}
+
 	ClearAllTimers(); //prevent weird startup things delaying if we bonk super early
 	UnhideDolphin();
-
-	IsBonking = IsBonk;
 
 	//Handle Player Detachment
 	ply = AttachedPlayer;
@@ -137,30 +132,16 @@ function UnmountDolphin(bool IsBonk = false)
 	SetPhysics(PHYS_None);
 	Velocity = vect(0,0,0);
 	SetTimer(IsBonk ? EndAnimationBonkTime : EndAnimationTime, false, NameOf(HideDolphin));
-
-	// Play cosmetic effects
-	SetDolphinAnim((IsBonk) ? 'Hurt' : 'GetOff');
-	if(IsBonk && MatInstance != None)
-	{
-		MatInstance.SetScalarParameterValue('IsHurt', 1.0); //Set expression to Hurt (ouch! X - X)
-	}
-
 	SetTimer(CosmeticEffectsDelay, false, NameOf(PlayUnmountCosmeticEffects));
 }
 
 function PlayUnmountCosmeticEffects()
 {
-	local ParticleSystemComponent SplashComp;
-	local Vector PositionOffset;
 	Print("PlayUnmountCosmeticEffects");
 
 	// Play cosmetic effects
 	PlaySound(EnterWaterSound);
-
-	PositionOffset = InitialDirection * ((IsBonking) ? SplashUnmountBonkOffset.X : SplashUnmountOffset.X);
-	PositionOffset.Z = IsBonking ? SplashUnmountBonkOffset.Z : SplashUnMountOffset.Z;
-	SplashComp = WorldInfo.MyEmitterPool.SpawnEmitter(SplashParticle, Location + PositionOffset, Rotator(InitialDirection));
-	SplashComp.SetScale(SplashScale);
+	SpawnSplashParticle(Location);
 	BubbleTrail.SetActive(false);
 }
 
@@ -172,20 +153,20 @@ function UnHideDolphin()
 
 function RideDolphin()
 {
-	Print("RideDolpin");
+	Print("RideDolphin");
 	AttachedPlayer.PlayCustomAnimation('HK_RideTotsu', true);
 }
 
 function HideDolphin()
 {
-	Print("HideDolpin");
+	Print("HideDolphin");
 	DolphinMesh.SetHidden(true);
 	SetTimer(DestroyTime, false, NameOf(DestroyDolphin));
 }
 
 function DestroyDolphin()
 {
-	Print("DestroyDolpin");
+	Print("DestroyDolphin");
 	AttachedPlayer = None;
 	GivePlayerAnimSet(false);
 
@@ -332,10 +313,30 @@ event Landed(Vector HitNormal, Actor FloorActor, Vector ImpactVelocity )
 	Super.Landed(HitNormal, FloorActor, ImpactVelocity);
 }
 
+function SpawnSplashParticle(Vector BaseLocation)
+{
+	local Vector Offset;
+	local ParticleSystemComponent SplashComp;
+
+	switch(CurrentAnim)
+	{
+		case 'GetOn': Offset = InitialDirection * (TotsugekiSpeed * UnhideDelayTime + GetOnOffset); break;
+		case 'GetOff': Offset = InitialDirection * GetOffOffset; break;
+		case 'Hurt': Offset = InitialDirection * HurtOffset; break;
+	}
+
+	Offset.Z = FLOOR_OFFSET_Z;
+
+	SplashComp = WorldInfo.MyEmitterPool.SpawnEmitter(SplashParticle, BaseLocation + Offset, Rotator(InitialDirection));
+	SplashComp.SetScale(SplashParticleScale);
+}
+
 function SetDolphinAnim(Name AnimName, optional bool instant)
 {
 	local int indx;
 	Print("SetDolpinAnim" @ `ShowVar(AnimName));
+
+	CurrentAnim = AnimName;
 
 	switch(AnimName)
 	{
@@ -476,19 +477,19 @@ defaultproperties
 	bBlockActors=false
 	bCollideWorld=true
 
-	//Temporary Variables
-	SplashMountOffset=(X=100,Y=0,Z=-60)
-	SplashUnmountOffset=(X=60,Y=0,Z=-60)
-	SplashUnmountBonkOffset=(X=-70,Y=0,Z=-60)
-	BubbleOffset=(X=0,Y=0,Z=0)
-	UnhideDelayTime=0.1
+	//Splash placement adjusting
+	GetOnOffset=-5
+	GetOffOffset=60
+	HurtOffset=-70
+
+	UnhideDelayTime=0.11
 	StartAnimTime=0.333
 	CosmeticEffectsDelay=0.1
 	EndAnimationTime=0.2
 	EndAnimationBonkTime=0.6
 	DestroyTime=1.0
 
-	SplashScale=0.75
+	SplashParticleScale=0.75
 	SplashParticle=ParticleSystem'HatInTime_PlayerAssets.watersplash.watersplash'
 	ExitWaterSound=SoundCue'HatinTime_SFX_Player.WaterJumpOut_cue'
 	EnterWaterSound=SoundCue'HatInTime_PlayerAssets.SoundCues.splash'
