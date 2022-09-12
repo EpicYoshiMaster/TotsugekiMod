@@ -28,6 +28,7 @@ var(Temporary) Vector BubbleOffset;
 var(Temporary) float SplashScale;
 var(Temporary) float CosmeticEffectsDelay;
 var(Temporary) float UnhideDelayTime;
+var(Temporary) float StartAnimTime;
 var(Temporary) float EndAnimationTime;
 var(Temporary) float EndAnimationBonkTime;
 var(Temporary) float DestroyTime;
@@ -59,6 +60,9 @@ function MountDolphin(Hat_Player ply)
 {
 	local ParticleSystemComponent SplashComp;
 	local Vector PositionOffset;
+
+	Print("MountDolpin");
+
 	if(AttachedPlayer != None)
 	{
 		UnmountDolphin(); //This should never occur but just in case!
@@ -66,7 +70,7 @@ function MountDolphin(Hat_Player ply)
 
 	// Handle player attachment
 	AttachedPlayer = ply;
-	ply.SetCollision(false, false);
+	ply.SetCollision(true, false);
 	ply.bCollideWorld = false;
 	ply.SetPhysics(PHYS_Falling);
 	ply.CustomGravityScaling = 0.0;
@@ -89,9 +93,9 @@ function MountDolphin(Hat_Player ply)
 	PositionOffset = InitialDirection * SplashMountOffset.X;
 	PositionOffset.Z = SplashMountOffset.Z;
 	SplashComp = WorldInfo.MyEmitterPool.SpawnEmitter(SplashParticle, Location + PositionOffset, Rotator(InitialDirection));
-	//SplashComp.SetTranslation(SplashMountOffset);
 	SplashComp.SetScale(SplashScale);
 	SetTimer(UnhideDelayTime, false, NameOf(UnHideDolphin));
+	SetTimer(StartAnimTime, false, NameOf(RideDolphin));
 
 	BubbleTrail.SetActive(true);
 	SetDolphinAnim('GetOn');
@@ -105,6 +109,10 @@ function MountDolphin(Hat_Player ply)
 function UnmountDolphin(bool IsBonk = false)
 {
 	local Hat_Player ply;
+	Print("UnmountDolphin" @ IsBonk);
+
+	ClearAllTimers(); //prevent weird startup things delaying if we bonk super early
+	UnhideDolphin();
 
 	IsBonking = IsBonk;
 
@@ -144,6 +152,7 @@ function PlayUnmountCosmeticEffects()
 {
 	local ParticleSystemComponent SplashComp;
 	local Vector PositionOffset;
+	Print("PlayUnmountCosmeticEffects");
 
 	// Play cosmetic effects
 	PlaySound(EnterWaterSound);
@@ -157,17 +166,26 @@ function PlayUnmountCosmeticEffects()
 
 function UnHideDolphin()
 {
+	Print("UnHideDolphin");
 	DolphinMesh.SetHidden(false);
+}
+
+function RideDolphin()
+{
+	Print("RideDolpin");
+	AttachedPlayer.PlayCustomAnimation('HK_RideTotsu', true);
 }
 
 function HideDolphin()
 {
+	Print("HideDolpin");
 	DolphinMesh.SetHidden(true);
 	SetTimer(DestroyTime, false, NameOf(DestroyDolphin));
 }
 
 function DestroyDolphin()
 {
+	Print("DestroyDolpin");
 	AttachedPlayer = None;
 	GivePlayerAnimSet(false);
 
@@ -317,6 +335,7 @@ event Landed(Vector HitNormal, Actor FloorActor, Vector ImpactVelocity )
 function SetDolphinAnim(Name AnimName, optional bool instant)
 {
 	local int indx;
+	Print("SetDolpinAnim" @ `ShowVar(AnimName));
 
 	switch(AnimName)
 	{
@@ -328,11 +347,6 @@ function SetDolphinAnim(Name AnimName, optional bool instant)
 	}
 
 	SetDolphinAnimationIndex(indx, instant);
-}
-
-function SetPlayerAnim(Name AnimName)
-{
-	AttachedPlayer.PlayCustomAnimation(AnimName, true);
 }
 
 function SetDolphinAnimationIndex(int indx, optional bool instant)
@@ -398,7 +412,7 @@ defaultproperties
 		CollideActors=false
 		BlockActors=false
 		CanBlockCamera = false
-		Translation=(X=10,Y=0,Z=-30)
+		Translation=(X=-3.5,Y=0,Z=-36)
 	End Object
 	DolphinMesh=Model0
 	Components.Add(Model0)
@@ -468,6 +482,7 @@ defaultproperties
 	SplashUnmountBonkOffset=(X=-70,Y=0,Z=-60)
 	BubbleOffset=(X=0,Y=0,Z=0)
 	UnhideDelayTime=0.1
+	StartAnimTime=0.333
 	CosmeticEffectsDelay=0.1
 	EndAnimationTime=0.2
 	EndAnimationBonkTime=0.6
