@@ -28,6 +28,11 @@ static function bool IsActorOfInteractType(Actor InteractActor)
 	return false;
 }
 
+static function EDolphinInteractType HitWall(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Vector HitNormal, Actor Wall, PrimitiveComponent WallComp)
+{
+	return DI_None;
+}
+
 static function EDolphinInteractType OnTouch(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vector HitNormal)
 {
 	return DI_None;

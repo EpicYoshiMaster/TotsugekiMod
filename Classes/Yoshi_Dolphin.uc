@@ -37,12 +37,23 @@ var Vector InitialDirection;
 var bool InTotsugekiMode; //This is when we're flying horizontally, we can attack enemies in this state
 
 var Hat_Player AttachedPlayer;
+var Name CurrentAnim;
 var AnimSet PlayerDolphinAnims;
 
 var transient MaterialInstanceTimeVarying MatInstance;
 
 var Yoshi_Hat_Ability_Totsugeki AbilityHandler;
 var array< class<Yoshi_DolphinInteractType> > InteractTypes; //These will be passed in by the Listener status effect, don't want to grab them over and over
+
+struct TouchStruct
+{
+	var Actor Other;
+	var PrimitiveComponent OtherComp;
+	var Vector HitLocation;
+	var Vector HitNormal;
+};
+
+var array<TouchStruct> PreInitializeTouches;
 
 simulated event PostBeginPlay()
 {
@@ -58,6 +69,7 @@ simulated event PostBeginPlay()
 */
 function MountDolphin(Hat_Player ply)
 {
+	local int i;
 	Print("MountDolphin" @ `ShowVar(ply));
 
 	// Handle player attachment
@@ -71,13 +83,9 @@ function MountDolphin(Hat_Player ply)
 	GivePlayerAnimSet(true);
 
 	// Set dolphin initial state
-	InTotsugekiMode = true;
-	//CurrentDuration = 0.0;
 	InitialDirection = Vector(ply.Rotation);
 	InitialDirection.Z = 0;
 	SetPhysics(PHYS_Falling);
-	DolphinMesh.SetLightEnvironment(ply.Mesh.LightEnvironment);
-	class'Hat_Pawn'.static.ReTouchAllActors_Static(self, true); //In-case we're starting in a wall
 
 	// Play cosmetic effects
 	SetDolphinAnim('GetOn');
@@ -89,6 +97,13 @@ function MountDolphin(Hat_Player ply)
 	SetTimer(StartAnimTime, false, NameOf(RideDolphin));
 
 	BubbleTrail.SetActive(true);
+
+	for(i = 0; i < PreInitializeTouches.length; i++)
+	{
+		Touch(PreInitializeTouches[i].Other, PreInitializeTouches[i].OtherComp, PreInitializeTouches[i].HitLocation, PreInitializeTouches[i].HitNormal);
+	}
+
+	PreInitializeTouches.Length = 0;
 }
 
 /**
@@ -218,10 +233,41 @@ event Bump( Actor Other, PrimitiveComponent OtherComp, Vector HitNormal )
 
 simulated event HitWall( Vector HitNormal, Actor Wall, PrimitiveComponent WallComp )
 {
-	Print("HitWall" @ `ShowVar(HitNormal) @ `ShowVar(Wall) @ `ShowVar(WallComp));
+	local int i;
+	local EDolphinInteractType Result;
+	local bool FoundInteractType;
+
 	if(InTotsugekiMode)
 	{
-		CallUnmountDolphin(true);
+		for(i = 0; i < InteractTypes.length; i++)
+		{
+			if(InteractTypes[i].static.IsActorOfInteractType(Wall))
+			{
+				FoundInteractType = true;
+
+				Print("HitWall[" $ InteractTypes[i] $ "]" @ `ShowVar(Wall) @ `ShowVar(WallComp));
+
+				Result = InteractTypes[i].static.HitWall(self, AttachedPlayer, HitNormal, Wall, WallComp);
+
+				if(Result == DI_None) continue;
+
+				if(Result == DI_Unmount)
+				{
+					CallUnmountDolphin(false);
+				}
+				else if(Result == DI_Bonk)
+				{
+					CallUnmountDolphin(true);
+				}
+
+				break;
+			}
+		}
+
+		if(!FoundInteractType)
+		{
+			//Print("NO TOUCH HANDLER FOUND FOR" @ `ShowVar(Other));
+		}
 	}
 
 	Super.HitWall(HitNormal, Wall, WallComp);
@@ -232,6 +278,19 @@ event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vecto
 	local int i;
 	local EDolphinInteractType Result;
 	local bool FoundInteractType;
+	local TouchStruct PreTouch;
+
+	//This is a pre-initialize touch
+	if(InTotsugekiMode && AttachedPlayer == None)
+	{
+		PreTouch.Other = Other;
+		PreTouch.OtherComp = OtherComp;
+		PreTouch.HitLocation = HitLocation;
+		PreTouch.HitNormal = HitNormal;
+
+		PreInitializeTouches.AddItem(PreTouch);
+		return;
+	}
 
 	if(Hat_Player(Other) != None && Hat_Player(Other) == AttachedPlayer) return;
 	if(Yoshi_Dolphin(Other) != None && Yoshi_Dolphin(Other) == self) return;
@@ -242,6 +301,7 @@ event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vecto
 		{
 			if(InteractTypes[i].static.IsActorOfInteractType(Other))
 			{
+				Print("Touch[" $ InteractTypes[i] $ "]" @ `ShowVar(Other) @ `ShowVar(OtherComp));
 				FoundInteractType = true;
 
 				Result = InteractTypes[i].static.OnTouch(self, AttachedPlayer, Other, OtherComp, HitLocation, HitNormal);
@@ -285,6 +345,7 @@ event UnTouch( Actor Other )
 		{
 			if(InteractTypes[i].static.IsActorOfInteractType(Other))
 			{
+				Print("UnTouch[" $ InteractTypes[i] $ "]" @ `ShowVar(Other));
 				FoundInteractType = true;
 
 				Result = InteractTypes[i].static.OnUnTouch(self, AttachedPlayer, Other);
@@ -415,6 +476,7 @@ defaultproperties
 	TotsugekiSpeed=1200.0
 	BonkPushback=(X=600,Y=0,Z=300)
 	DamageType=class'Hat_DamageType_HomingAttack'
+	InTotsugekiMode=true
 
 	Begin Object Class=SkeletalMeshComponent Name=Model0
 		SkeletalMesh=SkeletalMesh'Ctm_TOTSUGEKI_Content.models.Totsugeki'

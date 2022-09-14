@@ -4,16 +4,26 @@
 */
 class Yoshi_DolphinInteractType_TakeDamage extends Yoshi_DolphinInteractType;
 
+static function EDolphinInteractType HitWall(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Vector HitNormal, Actor Wall, PrimitiveComponent WallComp)
+{
+	if(!Wall.bHidden && WallComp.BlockActors)
+	{
+		Wall.TakeDamage(Dolphin.Damage, AttachedPlayer.Controller, Dolphin.Location, Dolphin.Velocity, Dolphin.DamageType);
+		return DI_Bonk;
+	}
+	
+	return DI_Ignore;
+}
+
 static function EDolphinInteractType OnTouch(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vector HitNormal)
 {
-	Dolphin.static.Print("OnTouch[TakeDamage]" @ `ShowVar(Other));
-
-	if(!Other.bHidden)
+	if(!Other.bHidden && OtherComp.BlockActors)
 	{
 		Other.TakeDamage(Dolphin.Damage, AttachedPlayer.Controller, Dolphin.Location, Dolphin.Velocity, Dolphin.DamageType);
+		return DI_Bonk;
 	}
-
-	return DI_Bonk;
+	
+	return DI_Ignore;
 }
 
 defaultproperties

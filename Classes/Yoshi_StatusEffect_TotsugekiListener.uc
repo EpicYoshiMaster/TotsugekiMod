@@ -128,10 +128,14 @@ function array< class<Yoshi_DolphinInteractType> > GetAllInteractClasses() {
 
     AllClasses = class'Hat_ClassHelper'.static.GetAllScriptClasses("Yoshi_DolphinInteractType");
     for(i = 0; i < AllClasses.length; i++) {
+		if(AllClasses[i] == class'Yoshi_DolphinInteractType_Blockable') continue; //We want this one last so wait a sec
+
         if(class<Yoshi_DolphinInteractType>(AllClasses[i]) != None) {
             AllInteractClasses.AddItem(class<Yoshi_DolphinInteractType>(AllClasses[i]));
         }
     }
+
+	AllInteractClasses.AddItem(class'Yoshi_DolphinInteractType_Blockable');
 
     return AllInteractClasses;
 }

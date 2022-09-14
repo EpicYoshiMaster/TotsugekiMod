@@ -6,8 +6,6 @@ class Yoshi_DolphinInteractType_TouchPassthrough extends Yoshi_DolphinInteractTy
 
 static function EDolphinInteractType OnTouch(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vector HitNormal)
 {
-	Dolphin.static.Print("OnTouch[TouchPassthrough]" @ `ShowVar(Other));
-
 	if(!Other.bHidden || Volume(Other) != None)
 	{
 		Other.Touch(AttachedPlayer, OtherComp, HitLocation, HitNormal);
@@ -18,8 +16,6 @@ static function EDolphinInteractType OnTouch(Yoshi_Dolphin Dolphin, Hat_Player A
 
 static function EDolphinInteractType OnUnTouch(Yoshi_Dolphin Dolphin, Hat_Player AttachedPlayer, Actor Other)
 {
-	Dolphin.static.Print("OnUnTouch[TouchPassthrough]" @ `ShowVar(Other));
-
 	if(!Other.bHidden || Volume(Other) != None)
 	{
 		Other.UnTouch(AttachedPlayer);
@@ -32,6 +28,5 @@ defaultproperties
 {
 	WhitelistedClasses.Add("Hat_Collectible")
 	WhitelistedClasses.Add("Hat_TimeObject_Base")
-	WhitelistedClasses.Add("Volume")
 	WhitelistedClasses.Add("Hat_DivaGreetSpot")
 }

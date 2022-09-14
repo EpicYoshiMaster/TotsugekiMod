@@ -12,34 +12,14 @@ class Yoshi_GameMod_TotsugekiMod extends GameMod;
 // Touch Types TODO
 //
 
-// 
-// Ready to Test
-//
-
-//
-// Need Changes
-//
-
-// COLLECT Time Pieces - working but need to cancel as well
-// Volumes - not working
-// Hat_GiantHeatDial - They end up calling HitWall........... Rude.......
-
-//
-// Need to be made
-//
-
-// Cancel Totsugeki on Endorsements (should also go for collects with auto skip off)
 // Impact Interact Trees
-// Dynamic Actors in general (NPCS)
 // Hat_CarryObject_Stackable
-// Should not be able to hit enemy line of sight volumes LOL
 // rift orbs and rift orb balls in purple rifts
 
 //
 // General TODO
 // 
 
-// - Parade owls are scary broken (but not like super broken just enough that it's concerning)
 // - Limit Totsugeki to 2D in Mafia Boss fight?
 
 event OnModLoaded() 
