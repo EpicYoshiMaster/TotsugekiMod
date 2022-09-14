@@ -58,7 +58,7 @@ function ItemRemovedFromInvManager()
 
 defaultproperties
 {
-	HUDIcon = Texture2D'HatInTime_Hud.Textures.Badges.powerpin_robot'
+	HUDIcon=Texture2D'Yoshi_TotsugekiMod_Content.Textures.GGST_MayHatIcon'
 	CosmeticItemName="Yoshi_TotsugekiHatName"
     Description(0) = "Yoshi_TotsugekiHatDesc";
 	AttachmentSocket = "SprintHat";
