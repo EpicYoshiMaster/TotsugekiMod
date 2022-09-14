@@ -6,6 +6,7 @@ class Yoshi_StatusEffect_TotsugekiListener extends Hat_StatusEffect
 	dependsOn(Yoshi_InputPack);
 
 var Yoshi_Dolphin Dolphin;
+var Yoshi_Hat_Ability_Totsugeki AbilityHandler;
 
 var bool OnCooldown;
 var bool WasHookshotSwinging;
@@ -19,13 +20,11 @@ function OnAdded(Actor a)
     Super.OnAdded(a);
 
 	AllInteractClasses = GetAllInteractClasses();
-
-	class'Yoshi_InputPack'.static.AttachController(ReceivedPlayerInput, PlayerController(Pawn(a).Controller), InputPack);
 }
 
 simulated function OnRemoved(Actor a) 
 {
-	class'Yoshi_InputPack'.static.DetachController(InputPack);
+	AbilityHandler = None;
 
 	Super.OnRemoved(a);
 }
@@ -34,28 +33,12 @@ function bool Update(float delta)
 {
 	CheckHookshotRefresh();
 
-	return true;
-}
-
-function bool ReceivedPlayerInput(int ControllerId, name Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
-{
-	local bool DidTotsugeki;
-	if(EventType != IE_Pressed) return false;
-
-	if(Key == 'Hat_Player_Ability')
+	if(!IsInTotsugeki() && OnCooldown && Owner.Physics == Phys_Walking)
 	{
-		DidTotsugeki = Totsugeki();
-
-		if(!DidTotsugeki && IsInTotsugeki())
-		{
-			UnTotsugeki();
-			return true;
-		}
-
-		return DidTotsugeki;
+		SetCooldown(false);
 	}
 
-	return false;
+	return true;
 }
 
 function bool CanUseTotsugeki()
@@ -87,6 +70,7 @@ function bool Totsugeki()
 
 	Dolphin = Owner.Spawn(class'Yoshi_Dolphin',,,Owner.Location,Owner.Rotation,,true);
 	Dolphin.InteractTypes = AllInteractClasses;
+	Dolphin.AbilityHandler = AbilityHandler;
 	Dolphin.MountDolphin(Hat_Player(Owner));
 	SetCooldown(true);
 
@@ -133,21 +117,6 @@ function OnSpringJump()
 function OnEnterWater(PhysicsVolume NewVolume) 
 {
 	SetCooldown(false);
-}
-
-function bool CannotJump()
-{
-    return IsInTotsugeki();
-}
-
-function bool CannotAttack()
-{
-    return IsInTotsugeki();
-}
-
-function bool OnDuck()
-{
-	return IsInTotsugeki();
 }
 
 //Call it once then never again...

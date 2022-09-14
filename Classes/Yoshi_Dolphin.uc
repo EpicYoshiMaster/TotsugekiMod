@@ -18,13 +18,12 @@ var(Effects) float HurtOffset;
 var(Effects) ParticleSystemComponent BubbleTrail;
 
 var(Gameplay) int Damage;
-var(Gameplay) float Duration;
 var(Gameplay) float TotsugekiSpeed;
 var(Gameplay) Vector BonkPushback; //apply X velocity in reverse of start direction, and Z velocity upwards
 var(Gameplay) class<Hat_DamageType> DamageType;
 
 var(Meshes) SkeletalMeshComponent DolphinMesh;
-var(Meshes) array<CylinderComponent> CollisionCylinders;
+var(Meshes) CylinderComponent FrontCollisionCylinder;
 
 // Temporary Testing Variables
 var(Temporary) float CosmeticEffectsDelay;
@@ -35,8 +34,6 @@ var(Temporary) float EndAnimationBonkTime;
 var(Temporary) float DestroyTime;
 
 var Vector InitialDirection;
-var Name CurrentAnim;
-var float CurrentDuration;
 var bool InTotsugekiMode; //This is when we're flying horizontally, we can attack enemies in this state
 
 var Hat_Player AttachedPlayer;
@@ -44,12 +41,14 @@ var AnimSet PlayerDolphinAnims;
 
 var transient MaterialInstanceTimeVarying MatInstance;
 
+var Yoshi_Hat_Ability_Totsugeki AbilityHandler;
 var array< class<Yoshi_DolphinInteractType> > InteractTypes; //These will be passed in by the Listener status effect, don't want to grab them over and over
 
 simulated event PostBeginPlay()
 {
 	MatInstance = DolphinMesh.CreateAndSetMaterialInstanceTimeVarying(0);
 	DolphinMesh.SetHidden(true);
+
 	Super.PostBeginPlay();
 }
 
@@ -73,7 +72,7 @@ function MountDolphin(Hat_Player ply)
 
 	// Set dolphin initial state
 	InTotsugekiMode = true;
-	CurrentDuration = 0.0;
+	//CurrentDuration = 0.0;
 	InitialDirection = Vector(ply.Rotation);
 	InitialDirection.Z = 0;
 	SetPhysics(PHYS_Falling);
@@ -100,6 +99,8 @@ function UnmountDolphin(bool IsBonk = false)
 {
 	local Hat_Player ply;
 	Print("UnmountDolphin" @ IsBonk);
+
+	if(!InTotsugekiMode) return;
 
 	// Play cosmetic effects
 	SetDolphinAnim((IsBonk) ? 'Hurt' : 'GetOff');
@@ -135,6 +136,23 @@ function UnmountDolphin(bool IsBonk = false)
 	SetTimer(CosmeticEffectsDelay, false, NameOf(PlayUnmountCosmeticEffects));
 }
 
+/*
+* Wrapper for the internals of Yoshi_Dolphin
+* Administrates signalling to the ability that we're de-activating the hat ability in here
+*/
+function CallUnmountDolphin(bool IsBonk = false)
+{
+	if(!InTotsugekiMode) return;
+
+	if(AbilityHandler != None)
+	{
+		AbilityHandler.Activated = false;
+		AbilityHandler = None;
+	}
+
+	UnmountDolphin(IsBonk);
+}
+
 function PlayUnmountCosmeticEffects()
 {
 	Print("PlayUnmountCosmeticEffects");
@@ -168,6 +186,7 @@ function DestroyDolphin()
 {
 	Print("DestroyDolphin");
 	AttachedPlayer = None;
+	AbilityHandler = None;
 	GivePlayerAnimSet(false);
 
 	Destroy();
@@ -184,17 +203,9 @@ simulated event Tick(float d)
 
 	if(InTotsugekiMode)
 	{
-		CurrentDuration += d;
-
 		SetPhysics(PHYS_Falling);
 		Velocity = InitialDirection * TotsugekiSpeed;
 		AttachedPlayer.Velocity = Velocity; //Apply to the player too
-
-		if(CurrentDuration >= Duration)
-		{
-			Print("End Totsugeki Mode");
-			UnmountDolphin(false);
-		}
 	}
 }
 
@@ -210,7 +221,7 @@ simulated event HitWall( Vector HitNormal, Actor Wall, PrimitiveComponent WallCo
 	Print("HitWall" @ `ShowVar(HitNormal) @ `ShowVar(Wall) @ `ShowVar(WallComp));
 	if(InTotsugekiMode)
 	{
-		UnmountDolphin(true);
+		CallUnmountDolphin(true);
 	}
 
 	Super.HitWall(HitNormal, Wall, WallComp);
@@ -239,11 +250,11 @@ event Touch(Actor Other, PrimitiveComponent OtherComp, Vector HitLocation, Vecto
 
 				if(Result == DI_Unmount)
 				{
-					UnmountDolphin(false);
+					CallUnmountDolphin(false);
 				}
 				else if(Result == DI_Bonk)
 				{
-					UnmountDolphin(true);
+					CallUnmountDolphin(true);
 				}
 
 				break;
@@ -282,11 +293,11 @@ event UnTouch( Actor Other )
 
 				if(Result == DI_Unmount)
 				{
-					UnmountDolphin(false);
+					CallUnmountDolphin(false);
 				}
 				else if(Result == DI_Bonk)
 				{
-					UnmountDolphin(true);
+					CallUnmountDolphin(true);
 				}
 
 				break;
@@ -307,7 +318,7 @@ event Landed(Vector HitNormal, Actor FloorActor, Vector ImpactVelocity )
 	Print("Landed");
 	if(InTotsugekiMode)
 	{
-		UnmountDolphin(false);
+		CallUnmountDolphin(false);
 	}
 
 	Super.Landed(HitNormal, FloorActor, ImpactVelocity);
@@ -401,7 +412,6 @@ defaultproperties
 {
 	TotsugekiVoiceline=SoundCue'Yoshi_TotsugekiMod_Content.SoundCues.Totsugeki_May'
 	Damage=5
-	Duration=2.0
 	TotsugekiSpeed=1200.0
 	BonkPushback=(X=600,Y=0,Z=300)
 	DamageType=class'Hat_DamageType_HomingAttack'
@@ -417,27 +427,12 @@ defaultproperties
 	End Object
 	DolphinMesh=Model0
 	Components.Add(Model0)
-
-	// Collision (3 cylinders arranged together)
-	Begin Object Class=CylinderComponent Name=CenterCylinder
-		CollisionRadius=30
-		CollisionHeight=20
-		CanBlockCamera = false
-
-		CollideActors=true
-		BlockActors=false
-		bAlwaysRenderIfSelected=true
-		bDrawBoundingBox=false
-		HiddenGame=false
-	End Object
-	Components.Add(CenterCylinder)
-	CollisionCylinders.Add(CenterCylinder)
-
+	
 	Begin Object Class=CylinderComponent Name=FrontCylinder
 		CollisionRadius=30
 		CollisionHeight=20
 		CanBlockCamera = false
-		Translation=(X=35);
+		Translation=(X=25);
 
 		CollideActors=true
 		BlockActors=false
@@ -446,23 +441,7 @@ defaultproperties
 		HiddenGame=false
 	End Object
 	Components.Add(FrontCylinder)
-	CollisionCylinders.Add(FrontCylinder)
 	CollisionComponent=FrontCylinder
-
-	Begin Object Class=CylinderComponent Name=BackCylinder
-		CollisionRadius=30
-		CollisionHeight=20
-		CanBlockCamera = false
-		Translation=(X=-35);
-
-		CollideActors=true
-		BlockActors=false
-		bAlwaysRenderIfSelected=true
-		bDrawBoundingBox=false
-		HiddenGame=false
-	End Object
-	Components.Add(BackCylinder)
-	CollisionCylinders.Add(BackCylinder)
 
 	// Effects
 	Begin Object Class=ParticleSystemComponent Name=BubbleTrailParticle
@@ -486,7 +465,7 @@ defaultproperties
 	StartAnimTime=0.333
 	CosmeticEffectsDelay=0.1
 	EndAnimationTime=0.2
-	EndAnimationBonkTime=0.6
+	EndAnimationBonkTime=0.425
 	DestroyTime=1.0
 
 	SplashParticleScale=0.75

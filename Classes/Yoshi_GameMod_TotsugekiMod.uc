@@ -40,12 +40,7 @@ class Yoshi_GameMod_TotsugekiMod extends GameMod;
 // 
 
 // - Parade owls are scary broken (but not like super broken just enough that it's concerning)
-// - Look into how totsugeki is busting through walls
 // - Limit Totsugeki to 2D in Mafia Boss fight?
-// - Delay Dolphin hidden startup time just a tiny bit more
-
-// For Later
-// - Set up the mod as a Badge or Hat Ability
 
 event OnModLoaded() 
 {
