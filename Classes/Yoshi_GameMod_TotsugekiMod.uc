@@ -20,7 +20,6 @@ class Yoshi_GameMod_TotsugekiMod extends GameMod;
 // General TODO
 // 
 
-// - Fix Totsugeki lighting issues
 // - Limit Totsugeki to 2D in Mafia Boss fight?
 
 event OnModLoaded() 

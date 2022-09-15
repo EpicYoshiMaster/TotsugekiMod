@@ -86,6 +86,7 @@ function MountDolphin(Hat_Player ply)
 	InitialDirection = Vector(ply.Rotation);
 	InitialDirection.Z = 0;
 	SetPhysics(PHYS_Falling);
+	DolphinMesh.SetLightEnvironment(ply.Mesh.LightEnvironment);
 
 	// Play cosmetic effects
 	SetDolphinAnim('GetOn');
