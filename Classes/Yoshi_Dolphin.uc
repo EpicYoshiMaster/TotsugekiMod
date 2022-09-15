@@ -39,6 +39,8 @@ var bool InTotsugekiMode; //This is when we're flying horizontally, we can attac
 var Hat_Player AttachedPlayer;
 var Name CurrentAnim;
 var AnimSet PlayerDolphinAnims;
+var Hat_Path2D Path2D;
+var int Path2DLink;
 
 var transient MaterialInstanceTimeVarying MatInstance;
 
@@ -85,8 +87,11 @@ function MountDolphin(Hat_Player ply)
 	// Set dolphin initial state
 	InitialDirection = Vector(ply.Rotation);
 	InitialDirection.Z = 0;
+	Velocity = InitialDirection * TotsugekiSpeed;
+	AttachedPlayer.Velocity = Velocity;
 	SetPhysics(PHYS_Falling);
 	DolphinMesh.SetLightEnvironment(ply.Mesh.LightEnvironment);
+	Path2D = ply.Path2D;
 
 	// Play cosmetic effects
 	SetDolphinAnim('GetOn');
@@ -148,6 +153,7 @@ function UnmountDolphin(bool IsBonk = false)
 	InTotsugekiMode = false;
 	SetPhysics(PHYS_None);
 	Velocity = vect(0,0,0);
+	Path2D = None;
 	SetTimer(IsBonk ? EndAnimationBonkTime : EndAnimationTime, false, NameOf(HideDolphin));
 	SetTimer(CosmeticEffectsDelay, false, NameOf(PlayUnmountCosmeticEffects));
 }
@@ -215,12 +221,29 @@ function bool UsingTotsugeki()
 
 simulated event Tick(float d)
 {
+	local Vector DesiredLocation;
+
 	Super.Tick(d);
 
 	if(InTotsugekiMode)
 	{
 		SetPhysics(PHYS_Falling);
-		Velocity = InitialDirection * TotsugekiSpeed;
+		
+		Velocity.Z = 0;
+		
+		if(Path2D != None)
+		{
+			class'Hat_Pawn2D'.static.UpdatePath2D(Location, Path2D, Path2DLink);
+			Velocity = class'Hat_Pawn2D'.static.Update2DVelocity(Velocity, Path2D, Path2DLink, Location);
+			DesiredLocation = class'Hat_Pawn2D'.static.Desired2DLocation(Location, Path2D, Path2DLink);
+			Move((DesiredLocation - Location)*FMin(d*10.0,1.0));
+			SetRotation(Rotator(Velocity));
+		}
+		else
+		{
+			Velocity = InitialDirection * TotsugekiSpeed;
+		}
+
 		AttachedPlayer.Velocity = Velocity; //Apply to the player too
 	}
 }

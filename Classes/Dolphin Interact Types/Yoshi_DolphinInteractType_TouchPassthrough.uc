@@ -29,4 +29,5 @@ defaultproperties
 	WhitelistedClasses.Add("Hat_Collectible")
 	WhitelistedClasses.Add("Hat_TimeObject_Base")
 	WhitelistedClasses.Add("Hat_DivaGreetSpot")
+	WhitelistedClasses.Add("Hat_TimeRiftPortal")
 }
