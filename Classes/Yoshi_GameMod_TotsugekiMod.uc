@@ -44,9 +44,15 @@ function GiveItem(Hat_Player ply, bool bTakeAway)
 	if(ply.Controller == None) return;
 
 	if (!bTakeAway)
+	{
 		Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(class'Yoshi_Hat_Ability_Totsugeki'), false);
+		Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(class'Ctm_Collectible_MayOutfit'), false);
+	}
 	else
+	{
 		Hat_PlayerController(ply.Controller).GetLoadout().RemoveBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(class'Yoshi_Hat_Ability_Totsugeki'));
+		Hat_PlayerController(ply.Controller).GetLoadout().RemoveBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(class'Ctm_Collectible_MayOutfit'));
+	}
 }
 
 event OnModUnloaded() 

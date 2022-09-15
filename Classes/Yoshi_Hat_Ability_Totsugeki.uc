@@ -61,23 +61,19 @@ defaultproperties
 	HUDIcon=Texture2D'Yoshi_TotsugekiMod_Content.Textures.GGST_MayHatIcon'
 	CosmeticItemName="Yoshi_TotsugekiHatName"
     Description(0) = "Yoshi_TotsugekiHatDesc";
-	AttachmentSocket = "SprintHat";
+	AttachmentSocket = "HyperlightHat";
 
-	HatSectionGroup = "SprintHat";
+	HatSectionGroup = "icehat";
 	
     Begin Object Name=Mesh0
-        SkeletalMesh = SkeletalMesh'HatInTime_Costumes.models.sprint_hat_2017'
-        PhysicsAsset = PhysicsAsset'HatInTime_Costumes.Physics.sprint_hat_2017_Physics'
+        SkeletalMesh = SkeletalMesh'Ctm_TOTSUGEKI_Content.models.MayHat'
+        PhysicsAsset = None;
 		bHasPhysicsAssetInstance = true;
 		bNoSkeletonUpdate = false;
     End Object
-	
-    Begin Object Name=Mesh1
-        SkeletalMesh = SkeletalMesh'HatInTime_Costumes.models.sprint_hat_2017'
-        PhysicsAsset = PhysicsAsset'HatInTime_Costumes.Physics.sprint_hat_2017_Physics'
-		bNoSkeletonUpdate = false;
-    End Object
-	
+
+	HidePonytail = true;
+
 	TriggerMethod = AbilityTrigger_DoubleTap;
 	RequiresAHandFree = true;
 	CanBeActivatedOnVehicle = false;
