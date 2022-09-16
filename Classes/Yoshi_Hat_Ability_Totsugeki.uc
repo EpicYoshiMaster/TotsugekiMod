@@ -62,7 +62,6 @@ defaultproperties
 	CosmeticItemName="Yoshi_TotsugekiHatName"
     Description(0) = "Yoshi_TotsugekiHatDesc";
 	AttachmentSocket = "HyperlightHat";
-
 	HatSectionGroup = "icehat";
 	
     Begin Object Name=Mesh0

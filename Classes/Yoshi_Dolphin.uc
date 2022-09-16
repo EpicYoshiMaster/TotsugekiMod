@@ -25,13 +25,12 @@ var(Gameplay) class<Hat_DamageType> DamageType;
 var(Meshes) SkeletalMeshComponent DolphinMesh;
 var(Meshes) CylinderComponent FrontCollisionCylinder;
 
-// Temporary Testing Variables
-var(Temporary) float CosmeticEffectsDelay;
-var(Temporary) float UnhideDelayTime;
-var(Temporary) float StartAnimTime;
-var(Temporary) float EndAnimationTime;
-var(Temporary) float EndAnimationBonkTime;
-var(Temporary) float DestroyTime;
+var(Timers) float UnhideDelayTime;
+var(Timers) float StartAnimTime;
+var(Timers) float EndEffectsTime;
+var(Timers) float EndAnimationTime;
+var(Timers) float EndAnimationBonkTime;
+var(Timers) float DestroyTime;
 
 var Vector InitialDirection;
 var bool InTotsugekiMode; //This is when we're flying horizontally, we can attack enemies in this state
@@ -155,7 +154,7 @@ function UnmountDolphin(bool IsBonk = false)
 	Velocity = vect(0,0,0);
 	Path2D = None;
 	SetTimer(IsBonk ? EndAnimationBonkTime : EndAnimationTime, false, NameOf(HideDolphin));
-	SetTimer(CosmeticEffectsDelay, false, NameOf(PlayUnmountCosmeticEffects));
+	SetTimer(EndEffectsTime, false, NameOf(PlayUnmountCosmeticEffects));
 }
 
 /*
@@ -452,8 +451,6 @@ function SetDolphinAnimationIndex(int indx, optional bool instant)
     n = Hat_AnimBlendBase(DolphinMesh.FindAnimNode('DolphinAnims'));
     if (n != None)
         n.SetActiveChild(indx, instant ? 0.0f : n.GetBlendTime(indx));
-    else
-        `broadcast("Node" @ string(n) @ "not found");
 }
 
 function GivePlayerAnimSet(bool give)
@@ -479,6 +476,7 @@ function GivePlayerAnimSet(bool give)
 
 static final function Print(coerce string msg)
 {
+	/*
     local WorldInfo wi;
 
 	msg = "[Totsugeki] " $ msg;
@@ -490,7 +488,7 @@ static final function Print(coerce string msg)
             wi.GetALocalPlayerController().TeamMessage(None, msg, 'Event', 6);
         else
             wi.Game.Broadcast(wi, msg);
-    }
+    }*/
 }
 
 defaultproperties
@@ -549,7 +547,7 @@ defaultproperties
 
 	UnhideDelayTime=0.11
 	StartAnimTime=0.333
-	CosmeticEffectsDelay=0.1
+	EndEffectsTime=0.1
 	EndAnimationTime=0.2
 	EndAnimationBonkTime=0.425
 	DestroyTime=1.0

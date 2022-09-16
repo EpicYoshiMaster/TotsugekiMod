@@ -4,24 +4,6 @@
 */
 class Yoshi_GameMod_TotsugekiMod extends GameMod;
 
-//
-// TODO
-//
-
-//
-// Touch Types TODO
-//
-
-// Impact Interact Trees
-// Hat_CarryObject_Stackable
-// rift orbs and rift orb balls in purple rifts
-
-//
-// General TODO
-// 
-
-// - Limit Totsugeki to 2D in Mafia Boss fight?
-
 event OnModLoaded() 
 {
 	if(`GameManager.GetCurrentMapFilename() ~= `GameManager.TitleScreenMapName) return;
