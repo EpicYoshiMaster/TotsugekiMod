@@ -11,10 +11,14 @@ defaultproperties
 	SkinBodyMesh = SkeletalMesh'Ctm_TOTSUGEKI_Content.models.MayBody'
 	SkinLegsMesh = SkeletalMesh'Ctm_TOTSUGEKI_Content.models.MayLegs'
 
-	SkinColor[SkinColor_Dress] = (R=105, G=130, B=194)
-	SkinColor[SkinColor_Cape] = (R=197, G=228, B=240)
-	SkinColor[SkinColor_ShoesBottom] = (R=22, G=26, B=60)
-	SkinColor[SkinColor_Shoes] = (R=216, G=245, B=251)
-	SkinColor[SkinColor_Pants] = (R=192, G=243, B=247)
-	SkinColor[SkinColor_Orange] = (R=255, G=255, B=255)
+  SkinColor[SkinColor_Dress] = (R=246, G=154, B=71)
+  SkinColor[SkinColor_Cape] = (R=53, G=55, B=58)
+  SkinColor[SkinColor_Pants] = (R=193, G=113, B=32)
+  SkinColor[SkinColor_Shoes] = (R=83, G=38, B=13)
+  SkinColor[SkinColor_ShoesBottom] = (R=255, G=249, B=185)
+  SkinColor[SkinColor_Zipper] = (R=204, G=204, B=204)
+  SkinColor[SkinColor_Orange] = (R=245, G=94, B=70)
+  SkinColor[SkinColor_Hat] = (R=207, G=88, B=27)
+  SkinColor[SkinColor_HatAlt] = (R=94, G=135, B=175)
+  SkinColor[SkinColor_HatBand] = (R=240, G=240, B=240)
 }
