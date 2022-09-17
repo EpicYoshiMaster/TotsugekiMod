@@ -12,6 +12,8 @@ var class<Hat_StatusEffect> TotsugekiListener;
 function GivenTo( Pawn NewOwner, optional bool bDoNotActivate )
 {
 	Super.GivenTo(NewOwner, bDoNotActivate);
+
+	class'Yoshi_Dolphin'.static.Print("GivenTo");
 	
 	StatusEffect = Yoshi_StatusEffect_TotsugekiListener(Hat_Player(NewOwner).GiveStatusEffect(TotsugekiListener));
 	StatusEffect.AbilityHandler = self;
@@ -46,6 +48,8 @@ simulated function bool DoDeactivate(optional bool UserInflicted, optional bool 
 
 function ItemRemovedFromInvManager()
 {
+	class'Yoshi_Dolphin'.static.Print("ItemRemoved");
+
 	StatusEffect = None;
 
 	if(Hat_Player(Instigator) != None)
